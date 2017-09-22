@@ -1,8 +1,9 @@
 OSP based publications and content:
 - [journal publications](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3AJournal)
-- [tutorials all](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Atutorial%20)
-  - [video tutorials](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3AVideo+label%3ATutorial)
-  - [hands-on tutorials](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3ATutorial+label%3AHands-on)
+- [tutorials](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Atutorial%20)
+  - [video](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3AVideo+label%3ATutorial)
+  - [hands-on](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3ATutorial+label%3AHands-on)
+  - [journal](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aopen%20label%3Atutorial%20label%3Ajournal)
 - [slides (presentations and posters)](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Aslides)
 - [models](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Aosp-model)
 
