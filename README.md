@@ -1,4 +1,12 @@
-Publications, content, tutorials of different kinds based on OSP or PK-Sim/MoBi as individual [issues/entries](https://github.com/Open-Systems-Pharmacology/OSP-based-publications/issues).
+OSP based publications and content:
+- [journal publications](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3AJournal)
+- [tutorials all](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Atutorial%20)
+  - [video tutorials](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3AVideo+label%3ATutorial)
+  - [hands-on tutorials](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?q=is%3Aopen+is%3Aissue+label%3ATutorial+label%3AHands-on)
+- [slides (presentations and posters)](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Aslides)
+- [models](https://github.com/Open-Systems-Pharmacology/OSP-based-publications-and-content/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Aosp-model)
 
-For scientific publications: Preferred format for entering new publications: PubMed URL including link followed by PubMed "Abstract(text)" format copy of corresponding entry. Please add labels as appropiate or suggest labels as comments. For example, see [#2](https://github.com/Open-Systems-Pharmacology/OSP-based-publications/issues/2). 
+Feel free to add your content based on OSP or PK-Sim/MoBi as individual [issues/entries](https://github.com/Open-Systems-Pharmacology/OSP-based-publications/issues). Do not forget appropiate labels!
+
+For journal publications, the preferred format for entering new publications is PubMed URL including link followed by PubMed "Abstract(text)" format copy of corresponding entry. Please add labels as appropiate or suggest labels as comments. For example, see [#2](https://github.com/Open-Systems-Pharmacology/OSP-based-publications/issues/2). 
 
