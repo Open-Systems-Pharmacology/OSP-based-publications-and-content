@@ -1,0 +1,34 @@
+name: Compile Journal Publications
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Compile journal publications table
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: >-
+          python .github/scripts/compile-journal-publications.py
+          --output journal-publications.md
+
+      - name: Upload markdown table artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: journal-publications
+          path: journal-publications.md
