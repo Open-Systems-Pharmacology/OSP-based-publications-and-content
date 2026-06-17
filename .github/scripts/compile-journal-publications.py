@@ -120,6 +120,12 @@ def extract_doi(body):
     return ""
 
 
+def is_doi_url(url):
+    """Return True if the URL points at the doi.org resolver host."""
+    host = (urllib.parse.urlparse(url).hostname or "").lower()
+    return host == "doi.org" or host.endswith(".doi.org")
+
+
 def extract_publication_url(body):
     """Return the first non-DOI URL found in the issue body."""
     fallback = ""
@@ -127,7 +133,7 @@ def extract_publication_url(body):
         url = match.group(0).rstrip(".,);]")
         if not fallback:
             fallback = url
-        if "doi.org" in url:
+        if is_doi_url(url):
             continue
         return url
     return fallback
