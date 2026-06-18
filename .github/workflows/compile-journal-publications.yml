@@ -3,7 +3,6 @@ name: Compile Journal Publications
 on:
   workflow_dispatch:
   issues:
-    types: [opened, edited, closed]
 
 permissions:
   contents: write
