@@ -2,9 +2,10 @@ name: Compile Journal Publications
 
 on:
   workflow_dispatch:
+  issues:
 
 permissions:
-  contents: read
+  contents: write
   issues: read
 
 jobs:
@@ -27,8 +28,10 @@ jobs:
           python .github/scripts/compile-journal-publications.py
           --output journal-publications.md
 
-      - name: Upload markdown table artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: journal-publications
-          path: journal-publications.md
+      - name: Commit and push journal-publications.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add journal-publications.md
+          git diff --cached --quiet || git commit -m "update journal-publications.md"
+          git push
