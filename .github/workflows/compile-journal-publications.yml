@@ -33,5 +33,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add journal-publications.md
-          git diff --cached --quiet || git commit -m "chore: update journal-publications.md [skip ci]"
+          git diff --cached --quiet || git commit -m "update journal-publications.md"
           git push
