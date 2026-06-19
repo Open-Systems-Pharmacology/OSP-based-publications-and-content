@@ -17,6 +17,12 @@ name: Find Missing Journal Publications
 
 on:
   workflow_dispatch:
+    inputs:
+      days:
+        description: 'The number of days that the search time interval for new publications is set at.'
+        required: false
+        type: number
+        default: 14
   schedule:
     # 23:00 CET on Sundays. GitHub cron runs in UTC, and CET is UTC+1, so the
     # job is scheduled at 22:00 UTC. (During CEST / summer time this maps to
