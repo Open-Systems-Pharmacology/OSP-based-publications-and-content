@@ -37,6 +37,7 @@ The script only relies on the Python standard library so it can run on a plain
 
 import argparse
 import datetime as dt
+import html
 import json
 import os
 import re
@@ -89,7 +90,7 @@ def http_get_json(url, headers=None, retries=3, timeout=60):
 
 def normalise_title(title):
     """Return a comparison key for a title (lowercase alphanumerics only)."""
-    return re.sub(r"[^a-z0-9]+", "", (title or "").lower())
+    return re.sub(r"[^a-z0-9]+", "", clean_text(title).lower())
 
 
 def normalise_doi(doi):
@@ -108,6 +109,14 @@ def keyword_in_text(text):
         return False
     lowered = text.lower()
     return any(keyword.lower() in lowered for keyword in KEYWORDS)
+
+
+def clean_text(text):
+    """Remove simple HTML markup and normalise whitespace in source text."""
+    text = html.unescape(text or "")
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s*-\s*", "-", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def reconstruct_abstract(inverted_index):
@@ -156,7 +165,7 @@ def load_existing_publications(path):
     # Titles live inside the first anchor of every table row (the GitHub issue
     # link). Capture the anchor text to compare against candidate titles.
     for match in re.finditer(r"issues/\d+\">(.*?)</a>", content, re.DOTALL):
-        title = re.sub(r"<[^>]+>", "", match.group(1)).strip()
+        title = clean_text(match.group(1))
         if title:
             titles.add(normalise_title(title))
 
@@ -172,14 +181,14 @@ def make_record(title, date, year, pmid="", doi="", url="", source="", abstract=
     if not year and date_obj:
         year = str(date_obj.year)
     return {
-        "title": (title or "").strip(),
+        "title": clean_text(title),
         "date": date_obj,
         "year": str(year or "").strip(),
         "pmid": str(pmid or "").strip(),
         "doi": normalise_doi(doi),
         "url": (url or "").strip(),
         "source": source,
-        "abstract": (abstract or "").strip(),
+        "abstract": clean_text(abstract),
     }
 
 
