@@ -1,0 +1,78 @@
+name: Find Missing Journal Publications
+
+# Searches scientific literature sources for recently published articles / book
+# chapters that mention "PK-Sim" or "Open Systems Pharmacology" and are not yet
+# listed in journal-publications.md. The resulting markdown table is uploaded as
+# an artifact, published as an annotation and e-mailed to MAIL_MISSING_PUBS.
+#
+# Required repository secret:
+#   * MAIL_MISSING_PUBS - recipient e-mail address for the report.
+# Required secrets for the SMTP server used to send the e-mail:
+#   * MAIL_SERVER   - SMTP server address (e.g. smtp.gmail.com).
+#   * MAIL_PORT     - SMTP server port (e.g. 465).
+#   * MAIL_USERNAME - SMTP user name.
+#   * MAIL_PASSWORD - SMTP password / app token.
+# Optional secrets to raise rate limits / unlock extra sources:
+#   * NCBI_API_KEY, NCBI_EMAIL, SEMANTIC_SCHOLAR_API_KEY, CORE_API_KEY.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 23:00 CET on Sundays. GitHub cron runs in UTC, and CET is UTC+1, so the
+    # job is scheduled at 22:00 UTC. (During CEST / summer time this maps to
+    # 00:00, which is acceptable for a weekly report.)
+    - cron: '0 22 * * 0'
+
+permissions:
+  contents: read
+
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    env:
+      MAIL_MISSING_PUBS: ${{ secrets.MAIL_MISSING_PUBS }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Find missing journal publications
+        id: find
+        env:
+          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+          NCBI_EMAIL: ${{ secrets.NCBI_EMAIL }}
+          SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
+          CORE_API_KEY: ${{ secrets.CORE_API_KEY }}
+        run: >-
+          python .github/scripts/find-missing-journal-publications.py
+          --existing journal-publications.md
+          --output find-missing-journal-publications.md
+          --days 14
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: find-missing-journal-publications
+          path: find-missing-journal-publications.md
+
+      - name: Send report by e-mail
+        if: ${{ steps.find.outputs.has_results == 'true' && env.MAIL_MISSING_PUBS != '' }}
+        # Pinned to the v17 commit SHA for supply-chain safety.
+        uses: dawidd6/action-send-mail@42942bc2f8fba4e611b459a018967a6a7c78c68c
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Missing OSP journal publications (${{ steps.find.outputs.count }})"
+          to: ${{ secrets.MAIL_MISSING_PUBS }}
+          from: OSP Publication Finder <${{ secrets.MAIL_USERNAME }}>
+          html_body: file://find-missing-journal-publications.md
+          convert_markdown: true
+          attachments: find-missing-journal-publications.md
