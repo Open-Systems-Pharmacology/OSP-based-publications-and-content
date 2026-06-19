@@ -8,6 +8,7 @@ The script looks for publications that fulfil **all** of the following criteria:
   somewhere in an accessible part of the record (full text when available,
   otherwise title / abstract / references / other metadata).
 * Are *not* already listed in ``journal-publications.md`` of this repository.
+* Are *not* preprints (identified via API-level filters and URL / DOI heuristics).
 
 Several openly accessible literature search APIs are queried (PubMed, PubMed
 Central, Europe PMC, Crossref, OpenAlex, Semantic Scholar, DOAJ, CORE and
@@ -58,6 +59,22 @@ USER_AGENT = (
 # Matches a DOI such as 10.1208/s12248-026-01233-y
 DOI_CORE = r"10\.\d{4,9}/[^\s\)\]\}<>\"]+"
 PMID_URL_RE = re.compile(r"pubmed\.ncbi\.nlm\.nih\.gov/(\d+)")
+
+# Preprint server URL / DOI patterns used to detect and discard preprints.
+# DOI prefixes: 10.1101 = bioRxiv/medRxiv, 10.26434 = ChemRxiv,
+# 10.20944 = Preprints.org, 10.21203 = Research Square,
+# 10.22541 = Authorea, 10.31234 = PsyArXiv, 10.31219 = OSF Preprints.
+_PREPRINT_URL_RE = re.compile(
+    r"(arxiv\.org|biorxiv\.org|medrxiv\.org|ssrn\.com|"
+    r"researchsquare\.com|chemrxiv\.org|preprints\.org|"
+    r"authorea\.com|eartharxiv\.org|psyarxiv\.com|"
+    r"osf\.io/preprints)",
+    re.IGNORECASE,
+)
+_PREPRINT_DOI_RE = re.compile(
+    r"^10\.(1101|26434|20944|21203|22541|31234|31219)/",
+    re.IGNORECASE,
+)
 PMC_URL_RE = re.compile(r"pmc/articles/(PMC\d+)", re.IGNORECASE)
 
 
@@ -143,6 +160,26 @@ def is_keyword_verified(record):
     if record["source"] in TRUSTED_SOURCES:
         return True
     return keyword_in_text(record["title"] + " " + record.get("abstract", ""))
+
+
+def is_preprint(record):
+    """Return True if the record appears to be a preprint.
+
+    Detection is based on three independent signals (any one is sufficient):
+    * The URL points to a known preprint server.
+    * The DOI prefix belongs to a preprint platform.
+    * The title carries an explicit ``[Preprint]`` marker.
+    """
+    url = record.get("url", "") or ""
+    if _PREPRINT_URL_RE.search(url):
+        return True
+    doi = record.get("doi", "") or ""
+    if _PREPRINT_DOI_RE.match(doi):
+        return True
+    title = record.get("title", "") or ""
+    if re.search(r"\bpreprint\b", title, re.IGNORECASE):
+        return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +285,10 @@ def _eutils_extra():
 
 def search_pubmed(days, db="pubmed"):
     """Search PubMed / PMC for the keywords within the recent time window."""
-    term = "(" + " OR ".join(f'"{keyword}"' for keyword in KEYWORDS) + ")"
+    term = (
+        "(" + " OR ".join(f'"{keyword}"' for keyword in KEYWORDS) + ")"
+        + ' NOT "Preprint"[pt]'
+    )
     params = {
         "db": db,
         "term": term,
@@ -307,6 +347,7 @@ def search_europepmc(days):
     query = (
         f"({keyword_query}) AND "
         f"(FIRST_PDATE:[{start.isoformat()} TO {today.isoformat()}])"
+        f" NOT (SRC:PPR)"
     )
     params = {
         "query": query,
@@ -352,7 +393,7 @@ def search_crossref(days):
         "rows": "100",
         "sort": "published",
         "order": "desc",
-        "select": "title,DOI,issued,published,published-online,published-print",
+        "select": "title,DOI,type,issued,published,published-online,published-print",
     }
     mailto = os.environ.get("CROSSREF_MAILTO")
     if mailto:
@@ -361,6 +402,9 @@ def search_crossref(days):
     data = http_get_json(url)
     records = []
     for item in data.get("message", {}).get("items", []):
+        # Crossref type "posted-content" covers preprints (bioRxiv, medRxiv, etc.).
+        if item.get("type") == "posted-content":
+            continue
         titles = item.get("title") or []
         title = titles[0] if titles else ""
         if not keyword_in_text(title):
@@ -392,7 +436,8 @@ def search_openalex(days):
             "search": keyword,
             "filter": (
                 f"from_publication_date:{start.isoformat()},"
-                f"to_publication_date:{today.isoformat()}"
+                f"to_publication_date:{today.isoformat()},"
+                f"type:!preprint"
             ),
             "per-page": "100",
             "select": "display_name,publication_date,publication_year,doi,ids,abstract_inverted_index",
@@ -435,7 +480,7 @@ def search_semanticscholar(days):
     params = {
         "query": " ".join(KEYWORDS),
         "limit": "100",
-        "fields": "title,year,publicationDate,externalIds,abstract",
+        "fields": "title,year,publicationDate,publicationTypes,externalIds,abstract",
         "publicationDateOrYear": f"{start.isoformat()}:{today.isoformat()}",
     }
     url = (
@@ -449,6 +494,9 @@ def search_semanticscholar(days):
     data = http_get_json(url, headers=headers)
     records = []
     for item in data.get("data", []) or []:
+        pub_types = [t.lower() for t in (item.get("publicationTypes") or [])]
+        if "preprint" in pub_types:
+            continue
         title = item.get("title", "")
         date = item.get("publicationDate") or item.get("year")
         external = item.get("externalIds", {}) or {}
@@ -791,6 +839,7 @@ def main(argv=None):
     candidates = [record for record in candidates if is_keyword_verified(record)]
     candidates = [record for record in candidates if is_recent(record, args.days)]
     candidates = deduplicate(candidates)
+    candidates = [record for record in candidates if not is_preprint(record)]
     candidates = [
         record for record in candidates if not is_known(record, pmids, dois, titles)
     ]
