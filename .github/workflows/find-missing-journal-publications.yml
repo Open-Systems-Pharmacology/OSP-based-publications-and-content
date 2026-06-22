@@ -59,7 +59,7 @@ jobs:
           python .github/scripts/find-missing-journal-publications.py
           --existing journal-publications.md
           --output find-missing-journal-publications.md
-          --days ${{ inputs.days }}
+          --days ${{ inputs.days || 14 }}
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v7
